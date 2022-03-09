@@ -611,5 +611,51 @@ export const createArbitrumBridgeTest = async (
   proposalActions.calldatas.push(encodedAddress);
   proposalActions.withDelegatecalls.push(false);
 
+  proposalActions.encodedActions = ethers.utils.defaultAbiCoder.encode(
+    ['address[]', 'uint256[]', 'string[]', 'bytes[]', 'bool[]'],
+    [
+      proposalActions.targets,
+      proposalActions.values,
+      proposalActions.signatures,
+      proposalActions.calldatas,
+      proposalActions.withDelegatecalls,
+    ]
+  );
+  console.log(proposalActions.encodedActions);
+
+  return proposalActions;
+};
+
+export const createOptimismBridgeTest = async (
+  dummyAddress: tEthereumAddress,
+  testEnv: TestEnv
+): Promise<ProposalActions> => {
+  const { ethers } = DRE;
+  const { optimismBridgeExecutor } = testEnv;
+  const proposalActions = new ProposalActions();
+
+  // push the first transaction fields into action arrays
+  const encodedAddress = ethers.utils.defaultAbiCoder.encode(['uint256'], [dummyAddress]);
+  proposalActions.targets.push(optimismBridgeExecutor.address);
+  proposalActions.values.push(BigNumber.from(0));
+  proposalActions.signatures.push('updateEthereumGovernanceExecutor(address)');
+  proposalActions.calldatas.push(encodedAddress);
+  proposalActions.withDelegatecalls.push(false);
+
+  const encodedQueue = optimismBridgeExecutor.interface.encodeFunctionData('queue', [
+    proposalActions.targets,
+    proposalActions.values,
+    proposalActions.signatures,
+    proposalActions.calldatas,
+    proposalActions.withDelegatecalls,
+  ]);
+  console.log(encodedQueue);
+
+  proposalActions.encodedRootCalldata = ethers.utils.defaultAbiCoder.encode(
+    ['address', 'bytes', 'uint32'],
+    [optimismBridgeExecutor.address, encodedQueue, 1500000]
+  );
+  console.log(proposalActions);
+
   return proposalActions;
 };

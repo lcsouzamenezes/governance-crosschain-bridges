@@ -5,10 +5,16 @@ pragma abicoder v2;
 import './interfaces/ICrossDomainMessenger.sol';
 import './L2BridgeExecutor.sol';
 
+import 'hardhat/console.sol';
 contract OptimismBridgeExecutor is L2BridgeExecutor {
   address public immutable OVM_L2_CROSS_DOMAIN_MESSENGER;
 
   modifier onlyEthereumGovernanceExecutor() override {
+    console.log('eeeeeeeeeeeeeeeeeee');
+    console.log(msg.sender);
+    console.log(OVM_L2_CROSS_DOMAIN_MESSENGER);
+    console.log(ICrossDomainMessenger(OVM_L2_CROSS_DOMAIN_MESSENGER).xDomainMessageSender());
+    console.log(_ethereumGovernanceExecutor);
     require(
       msg.sender == OVM_L2_CROSS_DOMAIN_MESSENGER &&
         ICrossDomainMessenger(OVM_L2_CROSS_DOMAIN_MESSENGER).xDomainMessageSender() ==

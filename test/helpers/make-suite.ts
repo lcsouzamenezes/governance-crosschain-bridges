@@ -7,6 +7,10 @@ import { solidity } from 'ethereum-waffle';
 import { tEthereumAddress } from '../../helpers/types';
 import { deployArbitrumBridgeExecutor } from '../../helpers/arbitrum-contract-getters';
 import {
+  deployOptimismBridgeExecutor,
+  deployOvmMessengers,
+} from '../../helpers/optimism-contract-getters';
+import {
   getAaveGovContract,
   deployExecutorContract,
   deployCustomPolygonMapping,
@@ -25,6 +29,9 @@ import {
   FxRoot,
   PolygonBridgeExecutor,
   ArbitrumBridgeExecutor,
+  OptimismBridgeExecutor,
+  MockOvmL1CrossDomainMessenger,
+  MockOvmL2CrossDomainMessenger,
 } from '../../typechain';
 
 chai.use(solidity);
@@ -68,7 +75,10 @@ export interface TestEnv {
   fxChild: FxChild;
   polygonBridgeExecutor: PolygonBridgeExecutor;
   polygonMarketUpdate: PolygonMarketUpdate;
+  optimismL1Messenger: MockOvmL1CrossDomainMessenger;
+  optimismL2Messenger: MockOvmL2CrossDomainMessenger;
   arbitrumBridgeExecutor: ArbitrumBridgeExecutor;
+  optimismBridgeExecutor: OptimismBridgeExecutor;
   proposalActions: ProposalActions[];
 }
 
@@ -84,14 +94,18 @@ const testEnv: TestEnv = {
   fxChild: {} as FxChild,
   polygonBridgeExecutor: {} as PolygonBridgeExecutor,
   polygonMarketUpdate: {} as PolygonMarketUpdate,
+  optimismL1Messenger: {} as MockOvmL1CrossDomainMessenger,
+  optimismL2Messenger: {} as MockOvmL2CrossDomainMessenger,
+  arbitrumBridgeExecutor: {} as ArbitrumBridgeExecutor,
+  optimismBridgeExecutor: {} as OptimismBridgeExecutor,
   proposalActions: {} as ProposalActions[],
 } as TestEnv;
 
 const setUpSigners = async (): Promise<void> => {
   const { aaveWhale1, aaveWhale2, aaveWhale3, aaveGovOwner } = testEnv;
   aaveWhale1.address = '0x26a78d5b6d7a7aceedd1e6ee3229b372a624d8b7';
-  aaveWhale2.address = '0x1d4296c4f14cc5edceb206f7634ae05c3bfc3cb7';
-  aaveWhale3.address = '0x7d439999E63B75618b9C6C69d6EFeD0C2Bc295c8';
+  aaveWhale2.address = '0xf81ccdc1ee8de3fbfa48a0714fc773022e4c14d7';
+  aaveWhale3.address = '0x4048c47b546b68ad226ea20b5f0acac49b086a21';
   aaveGovOwner.address = '0x61910EcD7e8e942136CE7Fe7943f956cea1CC2f7';
 
   aaveWhale1.signer = await getImpersonatedSigner(aaveWhale1.address);
@@ -148,11 +162,33 @@ const deployArbitrumBridgeContracts = async (): Promise<void> => {
   );
 };
 
+const deployOptimismBridgeContracts = async (): Promise<void> => {
+  const { aaveGovOwner } = testEnv;
+
+  // deploy optimism messengers
+  const messengers = await deployOvmMessengers(aaveGovOwner.signer);
+  testEnv.optimismL1Messenger = messengers[0];
+  testEnv.optimismL2Messenger = messengers[1];
+
+  // deploy arbitrum executor
+  testEnv.optimismBridgeExecutor = await deployOptimismBridgeExecutor(
+    testEnv.optimismL2Messenger.address,
+    testEnv.shortExecutor.address,
+    BigNumber.from(60),
+    BigNumber.from(1000),
+    BigNumber.from(15),
+    BigNumber.from(500),
+    aaveGovOwner.address,
+    aaveGovOwner.signer
+  );
+};
+
 export const setupTestEnvironment = async (): Promise<void> => {
   await setUpSigners();
   await createGovernanceContracts();
   await deployPolygonBridgeContracts();
   await deployArbitrumBridgeContracts();
+  await deployOptimismBridgeContracts();
 };
 
 export async function makeSuite(
