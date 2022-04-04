@@ -3,7 +3,7 @@ import BN = require('bn.js');
 // import low from 'lowdb';
 // import FileSync from 'lowdb/adapters/FileSync';
 import { WAD } from './constants';
-import { Wallet, ContractTransaction, Signer } from 'ethers';
+import { Wallet, ContractTransaction, Signer, ethers } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { tEthereumAddress } from './types';
 import { isAddress } from 'ethers/lib/utils';
@@ -102,11 +102,9 @@ interface DbEntry {
 }
 
 export const getImpersonatedSigner = async (address: tEthereumAddress): Promise<Signer> => {
-  await DRE.network.provider.request({
-    method: 'hardhat_impersonateAccount',
-    params: [address],
-  });
-  return await DRE.ethers.getSigner(address);
+  const provider = new ethers.providers.JsonRpcProvider(DRE.ethers.provider.connection.url);
+  await provider.send('hardhat_impersonateAccount', [address]);
+  return provider.getSigner(address);
 };
 // export const printContracts = () => {
 //   const network = DRE.network.name;

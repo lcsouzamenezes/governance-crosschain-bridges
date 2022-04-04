@@ -21,7 +21,13 @@ import {
   triggerWhaleVotes,
   queueProposal,
 } from './helpers/governance-helpers';
-import { AaveGovernanceV2, ArbitrumBridgeExecutor, Executor, Executor__factory, PolygonBridgeExecutor__factory } from '../typechain';
+import {
+  AaveGovernanceV2,
+  ArbitrumBridgeExecutor,
+  Executor,
+  Executor__factory,
+  PolygonBridgeExecutor__factory,
+} from '../typechain';
 import { ZERO_ADDRESS } from '../helpers/constants';
 import { getAaveGovContract } from '../helpers/contract-getters';
 import { ADDRESSES } from '../helpers/gov-constants';
@@ -116,7 +122,7 @@ describe('Arbitrum Bridge', () => {
     aaveGovContract = await getAaveGovContract(ADDRESSES.AAVE_GOVERNANCE, deployer);
     shortExecutor = Executor__factory.connect(ADDRESSES.ETHEREUM_GOV_EXECUTOR, deployer);
 
-    const aaveWhale1 = await  ethers.provider.getSigner(AAVE_WHALES[0]);
+    const aaveWhale1 = await getImpersonatedSigner(AAVE_WHALES[0]);
     const aaveWhale2 = await getImpersonatedSigner(AAVE_WHALES[1]);
     const aaveWhale3 = await getImpersonatedSigner(AAVE_WHALES[2]);
 
@@ -158,7 +164,7 @@ describe('Arbitrum Bridge', () => {
     );
 
     // Submission
-    console.log('submit')
+    console.log('submit');
     proposal = await createProposal(
       aaveGovContract,
       aaveWhale1,
@@ -169,8 +175,8 @@ describe('Arbitrum Bridge', () => {
       [encodedRootCalldata],
       [false],
       '0xf7a1f565fcd7684fba6fea5d77c5e699653e21cb6ae25fbf8c5dbc8d694c7949'
-      );
-      console.log('submit2')
+    );
+    console.log('submit2');
     console.log(await aaveGovContract.getProposalById(proposal.id));
     await expectProposalState(aaveGovContract, proposal.id, proposalStates.PENDING);
   });
