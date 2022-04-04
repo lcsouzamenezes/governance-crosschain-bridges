@@ -20,6 +20,7 @@ import '@typechain/ethers-v5';
 import 'hardhat-deploy';
 import '@tenderly/hardhat-tenderly';
 import 'solidity-coverage';
+import 'hardhat-change-network';
 
 const SKIP_LOAD = process.env.SKIP_LOAD === 'true';
 if (!SKIP_LOAD) {
@@ -157,6 +158,32 @@ export default {
         balance,
       })),
       forking: mainnetFork,
+    },
+    ethereumFork: {
+      url: 'http://127.0.0.1:8546/',
+      blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
+      gasMultiplier: DEFAULT_GAS_MUL,
+      gasPrice: 'auto',
+      chainId: 31337,
+      accounts: {
+        mnemonic: MNEMONIC,
+        path: MNEMONIC_PATH,
+        initialIndex: 0,
+        count: 20,
+      },
+    },
+    arbitrumFork: {
+      url: 'http://127.0.0.1:8545/',
+      blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
+      gasMultiplier: DEFAULT_GAS_MUL,
+      gasPrice: 'auto',
+      chainId: 31337,
+      accounts: {
+        mnemonic: MNEMONIC,
+        path: MNEMONIC_PATH,
+        initialIndex: 0,
+        count: 20,
+      },
     },
     buidlerevm_docker: {
       hardfork: 'istanbul',
